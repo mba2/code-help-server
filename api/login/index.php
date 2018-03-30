@@ -6,7 +6,7 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT");
 
 require_once("../../classes/Users.php");
 
-$Groups = new Users();
-$Groups->response();
+$Users = new Users();
+$Users->response();
 
 ?>

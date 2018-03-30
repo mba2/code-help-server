@@ -72,14 +72,14 @@ require_once("DB.php");
 										echo json_encode(
 											array(
 												'status' => 'existed',
-												'user' => $user['uid']
+												'user' => $user
 											)
 										);     
 										$conn = null;
             }else {
                 $conn = null;
                 $this->createUser($user);
-						}
+        }
         }catch(PDOException $error){
             $stateError = $error->errorInfo[0];
             $codeError = $error->errorInfo[1];
@@ -107,7 +107,7 @@ require_once("DB.php");
 						echo json_encode(
 							array(
 								'status' => 'created',
-								'user' => $user['uid']
+								'user' => $user
 							)
 						);     
 						$conn = null;
