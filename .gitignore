@@ -17,6 +17,7 @@
 # SYSTEM FOLDERS
 .sass-cache
 /node_modules
+.vscode
 
 # System Files
 .DS_Store

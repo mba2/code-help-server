@@ -4,9 +4,9 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PATCH, PUT");
 
 
-require_once("../../classes/Tournaments.php");
+require_once("../../classes/Languages.php");
 
 
 
-$tournaments = new Tournaments();
+$tournaments = new Languages();
 $tournaments->response();

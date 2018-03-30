@@ -28,7 +28,7 @@ gulp.task('copy', () => {
 	const filterAppClass = _m.filter('**/App.php', {
 		restore: true
 	});
-	const filterResetDB = _m.filter('**/reset-db.sql', {
+	const sqlFiles = _m.filter('**/classes/*.php', {
 		restore: true
 	});
 	return gulp.src([
@@ -55,18 +55,17 @@ gulp.task('copy', () => {
 		    WHEN RUNNING ON A PRODUCTION ENVIRONMENT... CHANGE THE DEFAULT SCHEMA ON USAGE 
 		    INSIDE THE FILE THAT WILL RESET THE DATABASE WHILE IN REMOTE TESTS  
 		*/
-		.pipe((_m.util.env.production) ? filterResetDB : _m.util.noop())
-		.pipe((_m.util.env.production) ?
-			_m.replace(/USE\s+(.+);/, (match, group1) => {
-				return match.replace(group1, 'u989271099_sg');
-			}) :
+		.pipe((_m.util.env.production) ? sqlFiles : _m.util.noop())
+		.pipe(
+			(_m.util.env.production) ?
+			_m.replace('CODE_HELP','u989271099_ch') :
 			_m.util.noop()
 		)
 		/* 
 		    WHEN RUNNING ON A PRODUCTION ENVIRONMENT ....RESTORE THE INITIAL SET OF 
 		    FILES DEFINED ON gulp.src()
 		*/
-		.pipe((_m.util.env.production) ? filterResetDB.restore : _m.util.noop())
+		.pipe((_m.util.env.production) ? sqlFiles.restore : _m.util.noop())
 		/* 
 		   WHEN RUNNING ON A PRODUCTION ENVIRONMENT... SET A DIFERENT DESTINATION PATH 
 		*/
