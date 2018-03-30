@@ -80,54 +80,6 @@ class Languages extends App {
 			} 
 	}
 
-	function retrieveAllTeams() {
-			// SQL STATEMENT TO RETRIEVE ALL ITEMS, SEPARETED BY GROUPS
-			$allTeamsInGroupsQuery = "SELECT  *
-																	FROM sg_group_formation
-																	LEFT JOIN sg_teams USING(TEAM_ID)
-																	LEFT JOIN sg_groups USING(GROUP_ID)";
-			
-			$conn           = (new DB())->connect();                // CONNECTS TO THE DATABASE
-
-			
-			$query          = $conn->query($allTeamsInGroupsQuery); // RUNS THE QUERY
-			$allTeamsInfo   = $query->fetchAll(PDO::FETCH_ASSOC);   // STORES THE QUERYY AS A MULTIDIMENSION ARRAY
-			
-			$teamsByGroup   = 4;
-			$groups         = array();
-			$group          = array();
-			$groupID        = null;
-			$groupName      = null;
-			
-			foreach($allTeamsInfo as $index => $teamInfo) {
-
-					// IF THERE'RE ALREADY FOUR TEAMS IN A GROUP
-					if($index !== 0 && ( $index % $teamsByGroup === 0) ) {           
-							// ADDS THIS GROUP INTO AN ARRAY CONTAINING ALL OF THEM
-							$groups[] = array(
-													"grupID"    => $groupID,
-													"grupName"  => $groupName,
-													"teams"     => $group
-											); 
-							$group = null;       // RESETS THIS VARIABLE..IT HOLDS ALL TEAM OF A CURRENT GROUP
-					}
-					// ADD A TEAM'S INFORMATION INTO ITS GROUP
-					$group[] = $teamInfo;
-
-					$groupID    = $teamInfo['GROUP_ID'];
-					$groupName  = $teamInfo['GROUP_NAME'];
-			}
-	
-			// ADDS THE LAST GROUP INTO AN ARRAY CONTAINING ALL OF THEM
-			$groups[] = array(
-					"grupID"    => $groupID,
-					"grupName"  => $groupName,
-					"teams"     => $group
-			); 
-			
-			echo json_encode($groups);
-	}   
-
 	public function getSpecificGroups() {
 			$teamsInfo = json_decode( $this->urlParameters['info'],true );
 			$teamsInfo = array_change_key_case($teamsInfo,CASE_UPPER);
@@ -189,42 +141,93 @@ class Languages extends App {
 			}
 	}
 
+	private function retrieveAllLanguages() {
+		$getData = array_change_key_case( $this->urlParameters, CASE_UPPER );
+		$userId = json_decode( $getData['USER'],true );
+
+		try {
+			$conn = (new DB())->connect();   
+			
+			$sql_selectStmt = "SELECT * FROM `CH_USERS` 
+				WHERE `USER_ID` = :USER_ID";
+
+			$prepareSelect = $conn->prepare($sql_selectStmt); 
+			$prepareSelect->bindParam(':USER_ID', $userId); 
+
+			if(
+				$prepareSelect->execute() && 
+				!$prepareSelect->rowCount()
+			){
+				$this->e_userNotFound();
+				$conn = null;
+				exit();
+			}
+
+			$sql_selectStmt = "SELECT * FROM `CH_LANGUAGES` 
+				WHERE `USER_ID` = :USER_ID";
+	
+			$prepareSelect = $conn->prepare($sql_selectStmt); 
+			$prepareSelect->bindParam(':USER_ID', $userId);   
+
+			if(
+				$prepareSelect->execute() && 
+				$prepareSelect->rowCount()
+			){
+				$result = $prepareSelect->fetchAll(PDO::FETCH_ASSOC);
+				echo json_encode($result);
+			}
+			else {
+				$this->e_noLanguagesAvaliable();
+			}
+			$conn = null;
+		}catch(PDOException $error){
+			$stateError = $error->errorInfo[0];
+			$codeError = $error->errorInfo[1];
+			$specificMessage = $error->errorInfo[2];            
+			echo $genericMessage = $error->getMessage();
+			$conn = null;
+			// if($codeError == $this->MYSQL_DUPLICATED_KEY) $this->e_DK();
+			// if($codeError == $this->MYSQL_FOREIGN_KEY_FAILS ) $this->e_FK();
+		}
+	}
+
 	public function addUserLanguage() {
+		echo "add";
 			$info = json_decode( $this->urlParameters['add'], true );
 			
-			try {
-					$conn = (new DB())->connect();
-					// CREATE A INSERT STMT 
-					$sql_insertStmt =    
-							"INSERT INTO `CODE_HELP`.`CH_LANGUAGES`
-											(
-												`USER_ID`,
-												`LANGUAGE_NAME`
-											)
-									VALUES 
-											( 
-												:USER_ID, 
-												:LANGUAGE_NAME
-											)";            
-					// PREPARE THE QUERY
-					$sql_insertPrepare = $conn->prepare($sql_insertStmt);   
+			// try {
+			// 		$conn = (new DB())->connect();
+			// 		// CREATE A INSERT STMT 
+			// 		$sql_insertStmt =    
+			// 				"INSERT INTO `CODE_HELP`.`CH_LANGUAGES`
+			// 								(
+			// 									`USER_ID`,
+			// 									`LANGUAGE_NAME`
+			// 								)
+			// 						VALUES 
+			// 								( 
+			// 									:USER_ID, 
+			// 									:LANGUAGE_NAME
+			// 								)";            
+			// 		// PREPARE THE QUERY
+			// 		$sql_insertPrepare = $conn->prepare($sql_insertStmt);   
 					
-					$userId = $info['user'];
-					$languageName = $info['language'];
+			// 		$userId = $info['user'];
+			// 		$languageName = $info['language'];
 
-					$sql_insertPrepare->bindParam(':USER_ID' , $userId);         
-					$sql_insertPrepare->bindParam(':LANGUAGE_NAME', $languageName);   
-					$sql_insertPrepare->execute(); 
+			// 		$sql_insertPrepare->bindParam(':USER_ID' , $userId);         
+			// 		$sql_insertPrepare->bindParam(':LANGUAGE_NAME', $languageName);   
+			// 		$sql_insertPrepare->execute(); 
 
-					$this->s_insert();
-			}catch(PDOException $error){
-					$stateError = $error->errorInfo[0];
-					$codeError = $error->errorInfo[1];
-					$specificMessage = $error->errorInfo[2];            
+			// 		$this->s_insert();
+			// }catch(PDOException $error){
+			// 		$stateError = $error->errorInfo[0];
+			// 		$codeError = $error->errorInfo[1];
+			// 		$specificMessage = $error->errorInfo[2];            
 
-					if($codeError == $this->MYSQL_DUPLICATED_KEY) $this->e_alreadyExistingLanguage();
-					if($codeError == $this->MYSQL_FOREIGN_KEY_FAILS ) $this->e_nonExistingUser();
-			}
+			// 		if($codeError == $this->MYSQL_DUPLICATED_KEY) $this->e_alreadyExistingLanguage();
+			// 		if($codeError == $this->MYSQL_FOREIGN_KEY_FAILS ) $this->e_nonExistingUser();
+			// }
 	}
 
 	public function updateGroups() {
@@ -329,11 +332,35 @@ class Languages extends App {
 							array(
 									"request type" => $_SERVER['REQUEST_METHOD'], 
 									"status" => "failure", 
-									"message" => "Sorry, your request doesn't fit any valid structure. Try something like this: ?info={ids:'12,13,14',...}",
+									"message" => "Sorry, your request doesn't fit any valid structure. Try something like this: ?user=1",
 									'code' => '001'
 							)
 			);
 			exit();
+	}
+
+	public function e_userNotFound() {
+		echo json_encode(
+						array(
+								"request type" => $_SERVER['REQUEST_METHOD'], 
+								"status" => "failure", 
+								"message" => "User not found!!",
+								'code' => '002'
+						)
+		);
+		exit();
+	}
+
+	public function e_noLanguagesAvaliable() {
+		echo json_encode(
+						array(
+								"request type" => $_SERVER['REQUEST_METHOD'], 
+								"status" => "failure", 
+								"message" => "No avaliable languages yet.",
+								'code' => '003'
+						)
+		);
+		exit();
 	}
 
 	public function e_emptyParameters() {
@@ -472,29 +499,20 @@ class Languages extends App {
 					*       - MORE THAN ONE PARAMETERS WERE PASSED... 
 					*       - AN ARGUMENT NAMED 'info' WASN'T PASSED... 
 			*/
-			if( sizeof($this->urlParameters) > 1) {
+			if( sizeof($this->urlParameters) > 1 || sizeof($this->urlParameters) < 1) {
 					if( 
 							!key_exists("info",$this->urlParameters) ||
 							!key_exists("showTeams",$this->urlParameters)
 					) $this->e_invalidStructure();
 			} 
 
-			/* 
-				* WHEN THE GET REQUEST HAS NO PARAMETERS...RETRIEVE ALL TOURNAMENTS
-			*/
+
 			if( 
 					$this->emptyParameters(false) || 
-					( !key_exists("info",$this->urlParameters) && key_exists("showTeams",$this->urlParameters) )
-			) 
-			{
-					echo json_encode($this->getAllGroups());
-					exit();
+					!key_exists("user", array_change_key_case($this->urlParameters,CASE_UPPER))
+			){
+				$this->retrieveAllLanguages();
 			}
-			/* 
-				* WHEN THE GET REQUEST HA PARAMETERS AND THEY'RE VALID... RETRIEVE THE REQUIRED TOURNAMENTS
-			*/
-			echo $this->getSpecificGroups(); 
-			exit();
 	}
 
 	public function response_POST() {
@@ -502,7 +520,6 @@ class Languages extends App {
 			*  SET THE POSSIBLE GIVEN PARAMETERS INTO THE OBJECT...
 			*/ 
 			$this->setAllParameters(); 
-
 			$this->addUserLanguage();
 	}
 
@@ -532,9 +549,9 @@ class Languages extends App {
 							$this->response_GET();
 							break;
 					case 'POST':;
-							// CALL A CUSTOM RESPONSE FOR MADE FOR A 'POST' REQUEST
-							$this->response_POST();
-							break;
+					// CALL A CUSTOM RESPONSE FOR MADE FOR A 'POST' REQUEST
+					$this->response_POST();
+						break;
 					case 'PATCH':;
 							// CALL A CUSTOM RESPONSE FOR MADE FOR A 'PATCH' REQUEST
 							$this->response_PATCH();
