@@ -575,29 +575,32 @@ class Languages extends App {
 	}
 
 	public function response() {
-			
-			switch ($_SERVER['REQUEST_METHOD']) {
-					case 'GET':  
-							// CALL A CUSTOM RESPONSE FOR MADE FOR A 'GET' REQUEST
-							$this->response_GET();
-							break;
-					case 'POST':;
-					// CALL A CUSTOM RESPONSE FOR MADE FOR A 'POST' REQUEST
-					$this->response_POST();
-						break;
-					case 'PATCH':;
-							// CALL A CUSTOM RESPONSE FOR MADE FOR A 'PATCH' REQUEST
-							$this->response_PATCH();
-							break;
-					case 'DELETE':;
-							// CALL A CUSTOM RESPONSE FOR MADE FOR A 'DELETE' REQUEST
-							$this->response_DELETE();
-							break;
-					default:
-							$this->requestMethod = "GET";
-							$this->response_GET();
-			}
-			
+		// print_r($_SERVER);
+		// exit();
+		switch ($_SERVER['REQUEST_METHOD']) {
+			case 'GET':  
+					// CALL A CUSTOM RESPONSE FOR MADE FOR A 'GET' REQUEST
+					$this->response_GET();
+					break;
+			case 'POST':
+			// CALL A CUSTOM RESPONSE FOR MADE FOR A 'POST' REQUEST
+			$this->response_POST();
+				break;
+			case 'PATCH':
+					// CALL A CUSTOM RESPONSE FOR MADE FOR A 'PATCH' REQUEST
+					$this->response_PATCH();
+					break;
+			case 'DELETE':
+					// CALL A CUSTOM RESPONSE FOR MADE FOR A 'DELETE' REQUEST
+					$this->response_DELETE();
+					break;
+			case 'OPTIONS':
+				break;
+			default:
+				echo 'default';
+				$this->requestMethod = "GET";
+				$this->response_GET();
+		}	
 	}
 	// PARENT METHODS
 
