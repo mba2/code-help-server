@@ -230,6 +230,40 @@ class Languages extends App {
 			// }
 	}
 
+	public function updateLanguages() {
+		$rawInfo = json_decode( $this->urlParameters['update'], true ); // DECODE THE JSON INTO AN ARRAY
+		
+		try{        
+			$conn = (new DB())->connect();   
+
+			$sql_prepare = $conn->prepare(
+				"UPDATE `CH_LANGUAGES` 
+					SET `LANGUAGE_NAME` = ? 
+					WHERE LANGUAGE_ID = ?"
+			);
+
+			$hasUnalteredRow = false;
+			foreach($rawInfo as $language) {
+				$sql_prepare->execute(array($language['newValue'], $language['langID']));
+					
+				if(!$sql_prepare->rowCount())
+					$hasUnalteredRow = true;
+			}
+
+			if($hasUnalteredRow) {
+				$this->e_UnalteredUpdate();
+				exit();
+			}
+
+			$this->s_update(); // OUTPUT THE SUCCESS RESULT   
+			$conn = null;
+		}
+		catch(PDOException $error){
+			echo "Message: {$error->getMessage()}";
+			echo "\nCode: {$error->getCode()}";
+		}
+	}
+
 	public function updateGroups() {
 			$groupsInfo = json_decode( $this->urlParameters['info'], true ); // DECODE THE JSON INTO AN ARRAY
 			
@@ -341,49 +375,49 @@ class Languages extends App {
 
 	public function e_userNotFound() {
 		echo json_encode(
-						array(
-								"request type" => $_SERVER['REQUEST_METHOD'], 
-								"status" => "failure", 
-								"message" => "User not found!!",
-								'code' => '002'
-						)
+			array(
+				"request type" => $_SERVER['REQUEST_METHOD'], 
+				"status" => "failure", 
+				"message" => "User not found!!",
+				'code' => '002'
+			)
 		);
 		exit();
 	}
 
 	public function e_noLanguagesAvaliable() {
 		echo json_encode(
-						array(
-								"request type" => $_SERVER['REQUEST_METHOD'], 
-								"status" => "failure", 
-								"message" => "No avaliable languages yet.",
-								'code' => '003'
-						)
+			array(
+				"request type" => $_SERVER['REQUEST_METHOD'], 
+				"status" => "failure", 
+				"message" => "No avaliable languages yet.",
+				'code' => '003'
+			)
+		);
+		exit();
+	}
+
+	public function e_UnalteredUpdate() {
+		echo json_encode(
+			array(
+				"request type" => $_SERVER['REQUEST_METHOD'], 
+				"status" => "warning", 
+				"message" => "Your update command worked, but not all entries were update!",
+				'code' => '004'
+			)
 		);
 		exit();
 	}
 
 	public function e_emptyParameters() {
-			echo json_encode(
-					array(
-							"request type" => $_SERVER['REQUEST_METHOD'], 
-							"status" => "failure", 
-							"message" => "You have not passed any parameter",
-							'code' => '002'
-					)
-			); 
-	}
-
-	public function e_noGroupsFound() {
-			echo json_encode(
-					array(
-							"request type" => $_SERVER['REQUEST_METHOD'], 
-							"status" => "failure", 
-							"message" => "Sorry, could not find any Language on database",
-							'code' => '001'
-					)
-			);
-			exit();
+		echo json_encode(
+			array(
+					"request type" => $_SERVER['REQUEST_METHOD'], 
+					"status" => "failure", 
+					"message" => "You have not passed any parameter",
+					'code' => '005'
+			)
+		); 
 	}
 
 	public function e_updates() {
@@ -451,15 +485,14 @@ class Languages extends App {
 	}
 	
 	public function s_update() {
-			echo json_encode(
-					array(
-							"request type" => $_SERVER['REQUEST_METHOD'], 
-							"status" => "success", 
-							"message" => "Group(s) successfully updated. You're god damn right!",
-							'code' => '101',
-							'active groups' => $this->getAllGroups()
-					)
-			);
+		echo json_encode(
+			array(
+				"request type" => $_SERVER['REQUEST_METHOD'], 
+				"status" => "success", 
+				"message" => "Language(s) successfully updated!",
+				'code' => '101'
+			)
+		);
 	}
 
 	public function s_delete() {
@@ -529,7 +562,7 @@ class Languages extends App {
 			*/ 
 			$this->setAllParameters();   
 
-			$this->updateGroups();
+			$this->updateLanguages();
 	}
 
 	public function response_DELETE() {

@@ -13,4 +13,7 @@ CREATE TABLE CH_USERS (
 );
 
 INSERT INTO CH_USERS VALUES
-  ('1','google.com','email','display','photo','PHONE',1);
+  ('102617786899713612616','google.com','email','display','photo','PHONE',1);
+  
+  
+  SELECT * FROM CH_USERS;	

@@ -159,9 +159,9 @@ require_once("DB.php");
         }
     }
 
-    public function updateTournaments() {
-        $rawInfo = json_decode( $this->urlParameters['info'], true ); // DECODE THE JSON INTO AN ARRAY
-        
+    public function updateLanguages() {
+        $rawInfo = json_decode( $this->urlParameters['update'], true ); // DECODE THE JSON INTO AN ARRAY
+        print_r(rawInfo);
         try{        
             $conn = (new DB())->connect();   
         
@@ -170,37 +170,50 @@ require_once("DB.php");
                  * CONVERTS ALL KEYS TO UPPERCASE. 
                  * THE REASON IS THAT ALL COLUMNS NAMES ON DATABASE ARE CURRENTLY IN UPPERCASE
                 */   
-                $tournament = array_change_key_case($tournament,CASE_UPPER);        
-                /**
-                 * RETURNS ALL PROPERTIES OF THE ARRAY GIVEN BY THE USER BUT THE 'ID' PROPERTY. T
-                 * THIS NEW ARRAY WILL CONTAING ALL FIELDS AND ITS VALUES THAT SHOULD BE UPDATED. 
-                */  
-                $dataToUpdate = array_slice($tournament,1);
+                // $tournament = array_change_key_case($tournament,CASE_UPPER);        
+                // /**
+                //  * RETURNS ALL PROPERTIES OF THE ARRAY GIVEN BY THE USER BUT THE 'ID' PROPERTY. T
+                //  * THIS NEW ARRAY WILL CONTAING ALL FIELDS AND ITS VALUES THAT SHOULD BE UPDATED. 
+                // */  
+                // $dataToUpdate = array_slice($tournament,1);
 
-                $tournament["prepareParams"] = array_slice($tournament,0);
+                // $tournament["prepareParams"] = array_slice($tournament,0);
             
-                /**
-                 * GERERATES SQL SYNTAX FORMAT AND STORE THEM INTO THE TEMPORARY ARRAY
-                 */                        
-                $temp = [];      // A TEMPORARY ARRAY TO STORE THE DATA THAT MUST BE UPDATED IN A SQL SYNTAX FORMAT   
+                // /**
+                //  * GERERATES SQL SYNTAX FORMAT AND STORE THEM INTO THE TEMPORARY ARRAY
+                //  */                        
+                // $temp = [];      // A TEMPORARY ARRAY TO STORE THE DATA THAT MUST BE UPDATED IN A SQL SYNTAX FORMAT   
                 
-                foreach($dataToUpdate as $field => $key) {
-                    $temp[] = " $field = :{$field}"; 
-                }                
-                /**
-                 * - CONVERTS THE ARRAY INTO A STRING, WITH ITS ITEMS SEPARETED BY COMMA 
-                 * - REMOVES A WHITESPACE AT THE STRING'S START
-                */ 
-                $tournament["placeholders"] = ltrim(implode(",",$temp));  
-                /**
-                 * - CREATES A STRING TO BE SET AS CONTENT OF A PREPARE STATEMENT
-                */ 
-                $tournament["prepareStmt"] = "UPDATE `SG_TOURNAMENTS` SET " . $tournament["placeholders"] . " WHERE ID = :ID";
+                // foreach($dataToUpdate as $field => $key) {
+                //     $temp[] = " $field = :{$field}"; 
+                // }                
+                // /**
+                //  * - CONVERTS THE ARRAY INTO A STRING, WITH ITS ITEMS SEPARETED BY COMMA 
+                //  * - REMOVES A WHITESPACE AT THE STRING'S START
+                // */ 
+                // $tournament["placeholders"] = ltrim(implode(",",$temp));  
+                // /**
+                //  * - CREATES A STRING TO BE SET AS CONTENT OF A PREPARE STATEMENT
+                // */ 
+                // $tournament["prepareStmt"] = "UPDATE `SG_TOURNAMENTS` SET " . $tournament["placeholders"] . " WHERE ID = :ID";
                                 
-                $prepareUpdate = $conn->prepare($tournament["prepareStmt"]); // SET THE PREPARE STATEMENT
-                $prepareUpdate->execute($tournament["prepareParams"]);       // EXECUTE IT
+                // $prepareUpdate = $conn->prepare($tournament["prepareStmt"]); // SET THE PREPARE STATEMENT
+                // $prepareUpdate->execute($tournament["prepareParams"]);       // EXECUTE IT
 
             }
+
+
+
+            $sql_prepare = "UPDATE `CH_LANGUAGES` 
+                SET `LANGUAGE_NAME` = ? 
+                WHERE LANGUAGE_ID = ?"; 
+
+            foreach($rawInfo as $language) {
+                $sql_prepare->execute(array($language['langID'], $$language['newValue']));
+            }
+
+
+
             $this->s_update(); // OUTPUT THE SUCCESS RESULT   
         }catch(PDOException $error){
             echo "Message: {$error->getMessage()}";
@@ -375,7 +388,7 @@ require_once("DB.php");
         */ 
         $this->setAllParameters();   
 
-        $this->updateTournaments();
+        $this->updateLanguages();
     }
 
     public function response_DELETE() {
@@ -388,7 +401,9 @@ require_once("DB.php");
    }
 
     public function response() {
-        
+        print_r($_SERVER['REQUEST_METHOD']);
+        exit();
+
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':  
                 // CALL A CUSTOM RESPONSE FOR MADE FOR A 'GET' REQUEST
